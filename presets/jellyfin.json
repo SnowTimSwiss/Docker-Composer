@@ -1,1 +1,25 @@
-
+{
+  "name": "jellyfin",
+  "image": "jellyfin/jellyfin:latest",
+  "restart": "unless-stopped",
+  "ports": ["8096:8096"],
+  "volumes": [
+    "/path/to/config:/config",
+    "/path/to/media:/media"
+  ],
+  "environment": [
+    {
+      "key": "PUID",
+      "value": "1000"
+    },
+    {
+      "key": "PGID",
+      "value": "1000"
+    },
+    {
+      "key": "TZ",
+      "value": "Europe/London"
+    }
+  ],
+  "networks": []
+}
