@@ -1,1 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Composer</title>
+    <style>
+        :root {
+            --primary: #2496ed;
+            --primary-dark: #1d7bc4;
+            --secondary: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+            --danger: #dc3545;
+            --border: #dee2e6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+        
+        .tagline {
+            color: var(--dark);
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .config-panel, .preview-panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+        }
+        
+        .panel-title {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 1.3rem;
+            color: var(--dark);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .array-input {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .array-input input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .preview {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .service-item {
+            background-color: var(--secondary);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .service-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .service-item.active {
+            background-color: #e7f3ff;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .service-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .service-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>Docker Composer</h1>
+                    <p class="tagline">Generate Docker Compose files in your browser</p>
+                </div>
+            </div>
+        </div>
+    </header>
 
+    <div class="container">
+        <div class="app-container">
+            <div class="config-panel">
+                <h2 class="panel-title">Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="service-selector">Select Service</label>
+                    <div id="service-list">
+                        <!-- Services will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="basic">Basic</div>
+                        <div class="tab" data-tab="volumes">Volumes</div>
+                        <div class="tab" data-tab="environment">Environment</div>
+                        <div class="tab" data-tab="network">Network</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="basic-tab">
+                        <div class="form-group">
+                            <label for="service-name">Service Name</label>
+                            <input type="text" id="service-name" placeholder="e.g., web, db, app">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="image">Docker Image</label>
+                            <input type="text" id="image" placeholder="e.g., nginx:latest, postgres:13">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="restart-policy">Restart Policy</label>
+                            <select id="restart-policy">
+                                <option value="no">no</option>
+                                <option value="always">always</option>
+                                <option value="on-failure" selected>on-failure</option>
+                                <option value="unless-stopped">unless-stopped</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Ports</label>
+                            <div id="ports-container">
+                                <div class="array-input">
+                                    <input type="text" class="port-input" placeholder="host:container (e.g., 8080:80)">
+                                    <button class="btn btn-danger btn-sm remove-port">Remove</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="add-port">Add Port</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="volumes-tab">
+                        <div class="form-group">
+                            <label>Volumes</label>
+                            <div id="volumes-container">
+                                <div class="array-input">
+                                    <input type="text" class="volume-input" placeholder="host:container (e.g., ./data:/app/data)">
+                                    <button class="btn btn-danger btn-sm remove-volume">Remove</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="add-volume">Add Volume</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="environment-tab">
+                        <div class="form-group">
+                            <label>Environment Variables</label>
+                            <div id="environment-container">
+                                <div class="array-input">
+                                    <input type="text" class="env-key" placeholder="Variable name">
+                                    <input type="text" class="env-value" placeholder="Value">
+                                    <button class="btn btn-danger btn-sm remove-env">Remove</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="add-env">Add Variable</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="network-tab">
+                        <div class="form-group">
+                            <label for="network-mode">Network Mode</label>
+                            <select id="network-mode">
+                                <option value="">default</option>
+                                <option value="host">host</option>
+                                <option value="bridge">bridge</option>
+                                <option value="none">none</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Networks</label>
+                            <div id="networks-container">
+                                <div class="array-input">
+                                    <input type="text" class="network-input" placeholder="Network name">
+                                    <button class="btn btn-danger btn-sm remove-network">Remove</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" id="add-network">Add Network</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-panel">
+                <h2 class="panel-title">Docker Compose Preview</h2>
+                <div class="preview" id="compose-preview">
+# Your docker-compose.yml will appear here
+# Configure your service on the left to see the preview
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="copy-btn">Copy to Clipboard</button>
+                    <button class="btn btn-success" id="download-btn">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Docker Composer - A browser-based tool to generate Docker Compose files easily</p>
+            <p>Licensed under GPL-2.0</p>
+        </div>
+    </footer>
+
+    <script>
+        // Service templates
+        const services = {
+            'jellyfin': {
+                name: 'jellyfin',
+                image: 'jellyfin/jellyfin:latest',
+                restart: 'unless-stopped',
+                ports: ['8096:8096'],
+                volumes: [
+                    '/path/to/config:/config',
+                    '/path/to/media:/media'
+                ],
+                environment: [
+                    { key: 'PUID', value: '1000' },
+                    { key: 'PGID', value: '1000' },
+                    { key: 'TZ', value: 'Europe/London' }
+                ],
+                networks: []
+            },
+            'nginx': {
+                name: 'web',
+                image: 'nginx:alpine',
+                restart: 'unless-stopped',
+                ports: ['80:80'],
+                volumes: [
+                    './html:/usr/share/nginx/html'
+                ],
+                environment: [],
+                networks: []
+            },
+            'postgres': {
+                name: 'database',
+                image: 'postgres:13',
+                restart: 'unless-stopped',
+                ports: ['5432:5432'],
+                volumes: [
+                    'postgres_data:/var/lib/postgresql/data'
+                ],
+                environment: [
+                    { key: 'POSTGRES_DB', value: 'mydb' },
+                    { key: 'POSTGRES_USER', value: 'user' },
+                    { key: 'POSTGRES_PASSWORD', value: 'password' }
+                ],
+                networks: []
+            }
+        };
+
+        // Initialize the service list
+        function initServiceList() {
+            const serviceList = document.getElementById('service-list');
+            serviceList.innerHTML = '';
+            
+            for (const [key, service] of Object.entries(services)) {
+                const serviceItem = document.createElement('div');
+                serviceItem.className = 'service-item';
+                serviceItem.dataset.service = key;
+                
+                serviceItem.innerHTML = `
+                    <div class="service-name">${service.name}</div>
+                    <div class="service-description">${service.image}</div>
+                `;
+                
+                serviceItem.addEventListener('click', () => {
+                    document.querySelectorAll('.service-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    serviceItem.classList.add('active');
+                    loadServiceConfig(key);
+                });
+                
+                serviceList.appendChild(serviceItem);
+            }
+            
+            // Activate the first service by default
+            if (serviceList.firstChild) {
+                serviceList.firstChild.classList.add('active');
+                loadServiceConfig(Object.keys(services)[0]);
+            }
+        }
+
+        // Load service configuration into the form
+        function loadServiceConfig(serviceKey) {
+            const service = services[serviceKey];
+            
+            document.getElementById('service-name').value = service.name;
+            document.getElementById('image').value = service.image;
+            document.getElementById('restart-policy').value = service.restart;
+            document.getElementById('network-mode').value = service.networkMode || '';
+            
+            // Load ports
+            const portsContainer = document.getElementById('ports-container');
+            portsContainer.innerHTML = '';
+            service.ports.forEach(port => {
+                addPortInput(port);
+            });
+            
+            // Load volumes
+            const volumesContainer = document.getElementById('volumes-container');
+            volumesContainer.innerHTML = '';
+            service.volumes.forEach(volume => {
+                addVolumeInput(volume);
+            });
+            
+            // Load environment variables
+            const envContainer = document.getElementById('environment-container');
+            envContainer.innerHTML = '';
+            service.environment.forEach(env => {
+                addEnvInput(env.key, env.value);
+            });
+            
+            // Load networks
+            const networksContainer = document.getElementById('networks-container');
+            networksContainer.innerHTML = '';
+            service.networks.forEach(network => {
+                addNetworkInput(network);
+            });
+            
+            // Generate preview
+            generatePreview();
+        }
+
+        // Add port input field
+        function addPortInput(value = '') {
+            const container = document.getElementById('ports-container');
+            const div = document.createElement('div');
+            div.className = 'array-input';
+            div.innerHTML = `
+                <input type="text" class="port-input" value="${value}" placeholder="host:container (e.g., 8080:80)">
+                <button class="btn btn-danger btn-sm remove-port">Remove</button>
+            `;
+            container.appendChild(div);
+            
+            // Add event listener to remove button
+            div.querySelector('.remove-port').addEventListener('click', () => {
+                div.remove();
+                generatePreview();
+            });
+            
+            // Add event listener to input for live preview
+            div.querySelector('.port-input').addEventListener('input', generatePreview);
+        }
+
+        // Add volume input field
+        function addVolumeInput(value = '') {
+            const container = document.getElementById('volumes-container');
+            const div = document.createElement('div');
+            div.className = 'array-input';
+            div.innerHTML = `
+                <input type="text" class="volume-input" value="${value}" placeholder="host:container (e.g., ./data:/app/data)">
+                <button class="btn btn-danger btn-sm remove-volume">Remove</button>
+            `;
+            container.appendChild(div);
+            
+            div.querySelector('.remove-volume').addEventListener('click', () => {
+                div.remove();
+                generatePreview();
+            });
+            
+            div.querySelector('.volume-input').addEventListener('input', generatePreview);
+        }
+
+        // Add environment variable input field
+        function addEnvInput(key = '', value = '') {
+            const container = document.getElementById('environment-container');
+            const div = document.createElement('div');
+            div.className = 'array-input';
+            div.innerHTML = `
+                <input type="text" class="env-key" value="${key}" placeholder="Variable name">
+                <input type="text" class="env-value" value="${value}" placeholder="Value">
+                <button class="btn btn-danger btn-sm remove-env">Remove</button>
+            `;
+            container.appendChild(div);
+            
+            div.querySelector('.remove-env').addEventListener('click', () => {
+                div.remove();
+                generatePreview();
+            });
+            
+            div.querySelector('.env-key').addEventListener('input', generatePreview);
+            div.querySelector('.env-value').addEventListener('input', generatePreview);
+        }
+
+        // Add network input field
+        function addNetworkInput(value = '') {
+            const container = document.getElementById('networks-container');
+            const div = document.createElement('div');
+            div.className = 'array-input';
+            div.innerHTML = `
+                <input type="text" class="network-input" value="${value}" placeholder="Network name">
+                <button class="btn btn-danger btn-sm remove-network">Remove</button>
+            `;
+            container.appendChild(div);
+            
+            div.querySelector('.remove-network').addEventListener('click', () => {
+                div.remove();
+                generatePreview();
+            });
+            
+            div.querySelector('.network-input').addEventListener('input', generatePreview);
+        }
+
+        // Generate the docker-compose.yml preview
+        function generatePreview() {
+            const serviceName = document.getElementById('service-name').value || 'myservice';
+            const image = document.getElementById('image').value || 'nginx:latest';
+            const restart = document.getElementById('restart-policy').value;
+            const networkMode = document.getElementById('network-mode').value;
+            
+            // Collect ports
+            const ports = [];
+            document.querySelectorAll('.port-input').forEach(input => {
+                if (input.value.trim()) {
+                    ports.push(input.value.trim());
+                }
+            });
+            
+            // Collect volumes
+            const volumes = [];
+            document.querySelectorAll('.volume-input').forEach(input => {
+                if (input.value.trim()) {
+                    volumes.push(input.value.trim());
+                }
+            });
+            
+            // Collect environment variables
+            const environment = {};
+            document.querySelectorAll('.array-input').forEach(div => {
+                const keyInput = div.querySelector('.env-key');
+                const valueInput = div.querySelector('.env-value');
+                if (keyInput && valueInput && keyInput.value.trim()) {
+                    environment[keyInput.value.trim()] = valueInput.value.trim();
+                }
+            });
+            
+            // Collect networks
+            const networks = [];
+            document.querySelectorAll('.network-input').forEach(input => {
+                if (input.value.trim()) {
+                    networks.push(input.value.trim());
+                }
+            });
+            
+            // Build the YAML content
+            let yaml = 'version: \"3.8\"\n\n';
+            yaml += 'services:\n';
+            yaml += `  ${serviceName}:\n`;
+            yaml += `    image: ${image}\n`;
+            
+            if (restart) {
+                yaml += `    restart: ${restart}\n`;
+            }
+            
+            if (ports.length > 0) {
+                yaml += '    ports:\n';
+                ports.forEach(port => {
+                    yaml += `      - \"${port}\"\n`;
+                });
+            }
+            
+            if (volumes.length > 0) {
+                yaml += '    volumes:\n';
+                volumes.forEach(volume => {
+                    yaml += `      - ${volume}\n`;
+                });
+            }
+            
+            if (Object.keys(environment).length > 0) {
+                yaml += '    environment:\n';
+                for (const [key, value] of Object.entries(environment)) {
+                    yaml += `      - ${key}=${value}\n`;
+                }
+            }
+            
+            if (networkMode) {
+                yaml += `    network_mode: ${networkMode}\n`;
+            }
+            
+            if (networks.length > 0) {
+                yaml += '    networks:\n';
+                networks.forEach(network => {
+                    yaml += `      - ${network}\n`;
+                });
+            }
+            
+            // Add volumes and networks definitions if needed
+            const namedVolumes = volumes.filter(v => v.includes(':') && !v.startsWith('.') && !v.startsWith('/'));
+            if (namedVolumes.length > 0) {
+                yaml += '\nvolumes:\n';
+                namedVolumes.forEach(volume => {
+                    const volumeName = volume.split(':')[0];
+                    yaml += `  ${volumeName}:\n`;
+                });
+            }
+            
+            if (networks.length > 0) {
+                yaml += '\nnetworks:\n';
+                networks.forEach(network => {
+                    yaml += `  ${network}:\n`;
+                });
+            }
+            
+            document.getElementById('compose-preview').textContent = yaml;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize service list
+            initServiceList();
+            
+            // Tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+            
+            // Add event listeners to form inputs
+            document.getElementById('service-name').addEventListener('input', generatePreview);
+            document.getElementById('image').addEventListener('input', generatePreview);
+            document.getElementById('restart-policy').addEventListener('change', generatePreview);
+            document.getElementById('network-mode').addEventListener('change', generatePreview);
+            
+            // Add buttons
+            document.getElementById('add-port').addEventListener('click', () => {
+                addPortInput();
+                generatePreview();
+            });
+            
+            document.getElementById('add-volume').addEventListener('click', () => {
+                addVolumeInput();
+                generatePreview();
+            });
+            
+            document.getElementById('add-env').addEventListener('click', () => {
+                addEnvInput();
+                generatePreview();
+            });
+            
+            document.getElementById('add-network').addEventListener('click', () => {
+                addNetworkInput();
+                generatePreview();
+            });
+            
+            // Copy to clipboard
+            document.getElementById('copy-btn').addEventListener('click', () => {
+                const preview = document.getElementById('compose-preview');
+                navigator.clipboard.writeText(preview.textContent)
+                    .then(() => {
+                        const btn = document.getElementById('copy-btn');
+                        const originalText = btn.textContent;
+                        btn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            });
+            
+            // Download
+            document.getElementById('download-btn').addEventListener('click', () => {
+                const content = document.getElementById('compose-preview').textContent;
+                const blob = new Blob([content], { type: 'text/yaml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'docker-compose.yml';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
+</body>
+</html>
